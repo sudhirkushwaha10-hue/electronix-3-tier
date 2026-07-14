@@ -11,9 +11,9 @@ pipeline{
 
         stage('Frontend Deployment') {
 
-            // when {
-            //     changeset "frontend/**"
-            // }
+             when {
+                 changeset "frontend/**"
+             }
 
             stages {
 
