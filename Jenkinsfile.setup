@@ -8,23 +8,19 @@ pipeline {
         stage('Provision Node.js Runtime') {
             steps {
                 sh '''
-                    if ! command -v node >/dev/null 2>&1; then
-                        echo "Installing Node.js..."
-                        sudo apt-get update -y
-                        sudo apt-get install -y curl
+                if ! command -v node > /dev/null 2>&1; then
+                    sudo apt-get update -y
+                    sudo apt-get install -y curl
 
-                        curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
-                        sudo bash nodesource_setup.sh
-                        sudo apt-get install -y nodejs
+                    curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+                    sudo bash nodesource_setup.sh
+                    sudo apt-get install -y nodejs
 
-                        rm -f nodesource_setup.sh
-                    else
-                        echo "Node.js is already installed."
-                    fi
+                    rm -f nodesource_setup.sh
+                fi
 
-                    node -v
-                    npm -v
-                    echo "✅ Node.js Runtime Ready"
+                node -v
+                echo "Node.js Runtime Successfully Installed ✅"
                 '''
             }
         }
@@ -32,37 +28,30 @@ pipeline {
         stage('Provision Docker Engine') {
             steps {
                 sh '''
-                    if ! command -v docker >/dev/null 2>&1; then
-                        echo "Installing Docker..."
+                if ! command -v docker > /dev/null 2>&1; then
 
-                        sudo apt-get update -y
-                        sudo apt-get install -y ca-certificates curl gnupg
+                    sudo apt-get update -y
+                    sudo apt-get install -y ca-certificates curl gnupg
 
-                        sudo install -m 0755 -d /etc/apt/keyrings
+                    sudo install -m 0755 -d /etc/apt/keyrings
 
-                        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-                        sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+                    -o /etc/apt/keyrings/docker.asc
 
-                        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+                    sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-                        echo \
-                        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-                        https://download.docker.com/linux/ubuntu \
-                        $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-                        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+                    echo \
+                    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+                    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+                    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-                        sudo apt-get update -y
+                    sudo apt-get update -y
 
-                        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+                    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+                fi
 
-                        sudo usermod -aG docker jenkins || true
-                    else
-                        echo "Docker is already installed."
-                    fi
-
-                    docker --version
-                    docker compose version
-                    echo "✅ Docker Engine Ready"
+                docker --version
+                echo "Docker Installed Successfully ✅"
                 '''
             }
         }
@@ -70,29 +59,16 @@ pipeline {
         stage('Provision MySQL Client') {
             steps {
                 sh '''
-                    if ! command -v mysql >/dev/null 2>&1; then
-                        echo "Installing MySQL Client..."
+                if ! command -v mysql > /dev/null 2>&1; then
+                    sudo apt-get update -y
+                    sudo apt-get install -y mysql-client
+                fi
 
-                        sudo apt-get update -y
-                        sudo apt-get install -y mysql-client
-                    else
-                        echo "MySQL Client is already installed."
-                    fi
-
-                    mysql --version
-                    echo "✅ MySQL Client Ready"
+                mysql --version
+                echo "MySQL Client Installed Successfully ✅"
                 '''
             }
         }
-    }
 
-    post {
-        success {
-            echo '🎉 All runtime dependencies are ready.'
-        }
-
-        failure {
-            echo '❌ Runtime provisioning failed.'
-        }
     }
 }
